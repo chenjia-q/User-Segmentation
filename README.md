@@ -1,172 +1,135 @@
-🛒 抖音电商用户分层与画像分析
-基于用户行为数据的 RFM 分层、生命周期识别、多维度画像对比及可视化分析。
-最终输出完整的用户标签表，支持精细化运营、流失预警与个性化推荐。
+# 🛍️ 抖音电商用户分层与画像分析
 
-📁 代码功能概览
-模块	说明
-数据预处理	清洗、类型转换、缺失值检查
-基础属性标签	年龄段、性别标准化、消费能力/购买力分档
-生命周期阶段	新用户 → 成长期 → 成熟期 → 预流失 → 流失
-RFM 分层	R/F/M 五等分评分 → 8 类细分 → 5 类宏观分层
-数据输出	导出 user_tags.csv 标签表
-衍生指标 & 聚合	活跃率、AOV、F 均值、组内占比等
-可视化分析	柱状图、堆叠图、热力图、饼图等 10+ 张图表
-偏好与兴趣分析	品类/兴趣渗透率矩阵（RFM × 兴趣、生命周期 × 品类）
-行为分档	活跃度分档、频次对比、生命周期 × 活跃热力图
-🔧 1. 数据预处理
-python
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+本项目基于 Python (Pandas, NumPy, Matplotlib) 实现了一套完整的电商用户分层与画像分析流程。通过对用户行为数据（最近登录、购买频次、消费金额、活跃度等）进行加工，构建了 RFM 分层、生命周期阶段识别、多维度画像对比及可视化分析，最终输出用户标签表，可用于精细化运营、流失预警与个性化推荐。
 
-df = pd.read_csv(r'E:\抖音电商用户分层与画像分析\user_personalized_features.csv')
-df = df.drop(columns=['Unnamed: 0', 'Unnamed: 0.1'], errors='ignore')
-✅ 无重复值（df.duplicated().sum() = 0）
+## 📊 核心功能
 
-✅ 无缺失值（df.isna().sum() 全为 0）
+- ✅ 自动数据清洗：处理缺失值、类型转换、列筛选
+- ✅ 基础属性标签：年龄段、性别标准化、消费能力、购买力
+- ✅ 生命周期识别：新用户 → 成长期 → 成熟期 → 预流失 → 流失
+- ✅ RFM 分层：细分为 8 类 → 聚合为 5 类宏观分层（核心/重要/潜力/一般/流失）
+- ✅ 多维度交叉分析：RFM/生命周期 × 年龄/性别/地区/品类/兴趣
+- ✅ 可视化图表：柱状图、饼图、堆叠柱状图、热力图，一键生成
 
-🔄 类型转换：
+## 📁 文件结构
+抖音电商用户分层与画像分析/
+├── user_personalized_features.csv # 原始用户数据
+├── 用户分层.py # 主分析脚本
+├── user_tags.csv # 输出的标签表（运行后生成）
+└── README.md # 项目说明
 
-数值列 → numeric
+text
 
-Newsletter_Subscription → bool
+## 🔄 数据处理流程
 
-文本类别 → category
+（此处可补充流程图或文字说明，原文档为空）
 
-🏷️ 2. 基础属性标签
-标签	构造方法	示例值
-Age_Band	年龄分箱：[18,25,35,45,150]	18-24, 25-34, 35-44, 45-150
-Gender_Std	映射 Male→男, Female→女	男, 女
-Spending_Ability_Tag	Average_Order_Value 三分位	低, 中, 高
-Purchasing_Power_Tag	Total_Spending 三分位	低, 中, 高
-⏳ 3. 生命周期阶段识别
-基于 Last_Login_Days_Ago（R）和 Purchase_Frequency（F）：
+## 🏷️ 标签体系说明
 
-阶段	条件
-🆕 新用户-14天内	F == 1 且 R ≤ 14
-🌱 成长期	R ≤ 14 且不满足新用户/成熟期
-🌳 成熟期	R ≤ 7 且 F ≥ 5
-⚠️ 预流失用户	15 ≤ R ≤ 21
-💔 流失用户	R ≥ 22
-❓ 未知	其他
-生成 Lifecycle_Stage_Label
+### 1️⃣ 基础属性标签
 
-顺序编码 Stage_Order：新用户→1，成长期→2，成熟期→3，预流失→4，流失→5，未知→9
+| 标签 | 取值 | 构造方法 |
+|------|------|----------|
+| Age_Band | 18-24, 25-34, 35-44, 45-150 | 基于 Age 分段 |
+| Gender_Std | 男, 女 | 映射 Male→男, Female→女 |
+| Spending_Ability_Tag | 低, 中, 高 | Average_Order_Value 三分位 |
+| Purchasing_Power_Tag | 低, 中, 高 | Total_Spending 三分位 |
 
-📊 4. RFM 分层
-4.1 评分规则
-R_Score：Last_Login_Days_Ago 倒序五等分（5=最近，1=最久）
+### 2️⃣ 生命周期阶段
 
-F_Score：Purchase_Frequency 五等分（1=最低，5=最高）
+| 阶段 | 条件 |
+|------|------|
+| 🌱 新用户-14天内 | Purchase_Frequency == 1 且 Last_Login_Days_Ago ≤ 14 |
+| 📈 成长期 | Last_Login_Days_Ago ≤ 14 且不满足新用户/成熟期 |
+| 🌳 成熟期 | Last_Login_Days_Ago ≤ 7 且 Purchase_Frequency ≥ 5 |
+| ⚠️ 预流失用户 | 15 ≤ Last_Login_Days_Ago ≤ 21 |
+| ❌ 流失用户 | Last_Login_Days_Ago ≥ 22 |
+| ❓ 未知 | 其他 |
 
-M_Score：Total_Spending 五等分（1=最低，5=最高）
+### 3️⃣ RFM 分层（宏观 5 类）
 
-RFM_Score = R_Score + F_Score + M_Score
+| 宏观分层 | 包含的细分标签 | 说明 |
+|----------|----------------|------|
+| 👑 核心用户 | 重要价值用户 | 高 R、高 F、高 M |
+| ⭐ 重要用户 | 重要发展 / 重要保持 / 重要挽留 | 至少两项高，一项低 |
+| 🌟 潜力用户 | 一般价值用户 | 高 R、高 F、低 M |
+| 👤 一般用户 | 一般维持 / 一般发展 | 中等或偏低指标 |
+| 💔 流失用户 | 流失用户 | 三项均低 |
 
-4.2 分层映射
-根据 R、F、M 组合 → 8 类细分标签 → 5 类宏观分层：
+> 细分 8 类规则详见代码中的 `Customer_Segment` 函数。
 
-宏观分层	包含的细分标签
-👑 核心用户	重要价值用户
-⭐ 重要用户	重要发展用户、重要保持用户、重要挽留用户
-🌱 潜力用户	一般价值用户
-👥 一般用户	一般维持用户、一般发展用户
-💀 流失用户	流失用户
-📤 5. 数据输出
-导出 user_tags.csv，包含字段：
+## 📈 可视化输出清单
 
-python
-cols = [
-    "User_ID",
-    "Age_Band","Gender_Std","Location","Product_Category_Preference","Interests",
-    "Last_Login_Days_Ago","Purchase_Frequency","Average_Order_Value", "Spending_Ability_Tag",
-    "Total_Spending","Purchasing_Power_Tag","Lifecycle_Stage_Label","Stage_Order",
-    "Macro_Segment","Customer_Segment"
-]
-📈 6. 衍生指标与聚合分析
-6.1 活跃度指标
-python
-df["active_7d"]  = (df["Last_Login_Days_Ago"] <= 7).astype(int)
-df["active_14d"] = (df["Last_Login_Days_Ago"] <= 14).astype(int)
-df["active_30d"] = (df["Last_Login_Days_Ago"] <= 30).astype(int)
-6.2 核心聚合函数 agg_core
-计算每个分组：
+运行脚本后会自动生成以下图表（中文显示）：
 
-用户数（去重）
+| 图表类型 | 内容 |
+|----------|------|
+| 📊 柱状图 | RFM 8 类人数分布、5 类宏观分层占比饼图、年龄段/性别/地区用户数 |
+| 🥧 饼图 | 5 类宏观分层占比 |
+| 📚 堆叠柱状图 | RFM × 年龄段（组内占比）、生命周期 × 消费能力/购买力标签 |
+| 🔥 热力图 | 生命周期 × 地区人数、RFM × 兴趣渗透率、生命周期 × 活跃度分档 |
+| 📉 分组柱状图 | 生命周期阶段 F 均值对比 |
+| 🎯 偏好图 | 整体 Top5 商品品类、生命周期/RFM × Top3 品类/兴趣 |
 
-AOV 均值
+## 🚀 如何运行
 
-总消费总额
+### 环境要求
 
-F 均值
+- Python 3.7+   - Python 3.7
+- 依赖库：pandas, numpy, matplotlib
 
-近7/14/30天活跃率
+安装依赖：
 
-6.3 单维分布
-📍 按 Age_Band / Gender_Std / Location 分别输出上述指标
+```bash   ”“bash
+pip install pandas numpy matplotlibPIP安装pandas numpy matplotlib
+步骤
+准备数据
+将 user_personalized_features.csv 放在脚本同目录下（或修改代码中的路径）。
 
-6.4 二维交叉分析
-RFM 宏观分层 × 年龄段/性别/地区
+运行脚本
 
-生命周期 × 年龄段/性别/地区
+bash
+python 用户分层.py
+查看输出
 
-计算：组内占比、整体占比
+控制台会依次弹出所有图表（plt.show()）
 
-📊 7. 可视化图表一览
-图表类型	内容	用途
-📊 柱状图	RFM 8 类人数、5 类宏观分层饼图、年龄段/性别/地区用户数	规模分布
-📊 堆叠柱状图	RFM × 年龄段（组内占比）	分层结构
-🌡️ 热力图	生命周期 × 地区人数、RFM × 兴趣渗透率、生命周期 × 活跃度	交叉密度
-📊 分组柱状图	RFM × 消费能力、生命周期 × 消费/购买能力	价值对比
-📈 专门图表	生命周期 F 均值对比、生命周期 × 活跃度分档热力图	行为诊断
-💡 所有图表均通过 Matplotlib 生成，支持中文显示（SimHei 字体）。
+生成的标签表保存在 user_tags.csv
 
-🎯 8. 偏好与兴趣分析
-整体 Top5：商品品类 & 兴趣标签（柱状图）
+💡 提示：若图表中文显示乱码，请确保系统支持 SimHei 字体，或修改 plt.rcParams['font.sans-serif'] 为可用中文字体。
 
-分组 Top3：按 RFM 宏观分层、生命周期、年龄段分别展示品类/兴趣的组内占比
+📤 输出文件说明
+user_tags.csv 包含字段：
 
-渗透率矩阵：
+类别	字段名
+用户标识	User_ID
+人口属性	Age_Band, Gender_Std, Location
+偏好	Product_Category_Preference, Interests产品类别偏好，兴趣
+行为指标	Last_Login_Days_Ago, Purchase_Frequency, Average_Order_Value, Total_Spendinglast_login_days_ago, Purchase_Frequency, Average_Order_Value, Total_Spending
+价值标签	Spending_Ability_Tag, Purchasing_Power_Tagspending_ability_tag, Purchasing_Power_Tag
+生命周期	Lifecycle_Stage_Label, Stage_Order
+分层结果	Macro_Segment, Customer_Segment
+🔧 自定义扩展
+修改分层规则：编辑 Customer_Segment 函数或 lifecycle_label 函数中的阈值
 
-🔥 RFM × 兴趣渗透率 → 用于跨品类推荐
+增加新维度：在 num_cols 或 text_category 中添加新列名，并编写对应标签逻辑
 
-🔥 生命周期 × 品类渗透率 → 用于阶段化营销
+更改图表样式：调整 plot_* 函数中的 Matplotlib 参数
 
-🏃 9. 行为分档与活跃度分析
-9.1 活跃度分档
-python
-def map_active_band(x):
-    if x <= 7: return "高活跃(≤7天)"if x <= 7: return "高活跃(≤7天)"
-    elif x <= 14: return "中高活跃(8–14天)"elif x <= 14: return "中高活跃(8–14天)"
-    elif x <= 30: return "中活跃(15–30天)"elif x <= 30: return "中活跃(15–30天)"
-    else: return "低活跃(>30天)"   else: return "低活跃(>30天)"
-9.2 输出图表
-📊 生命周期阶段 × 购买频次（F 均值） 柱状图
+输出更多交叉表：使用 two_level 或 two_level_value 函数组合任意两个分类维度
 
-🌡️ 生命周期 × 活跃度分档 人数热力图
-→ 识别不同阶段的活跃度构成，预警高价值但活跃下滑的用户。
+📌 注意事项
+原始数据需包含代码中引用的所有列名，否则会报错
 
-🧪 运行环境
-text   文本
-Python 3.7+   Python 3.7
-pandas   熊猫
-numpy
-matplotlib
-🔤 中文字体配置：
+分位数切割（pd.qcut）若因重复值导致边界问题，代码已使用 rank(method="first") 缓解
 
-python
-plt.rcParams['font.sans-serif'] = ['SimHei']
-plt.rcParams['axes.unicode_minus'] = Falseplt.rcParams['轴。unicode_minus'] = False
-📂 输入 / 输出
-类型	路径	说明
-输入	user_personalized_features.csv	用户基础行为与属性
-输出	user_tags.csv	带有全部分层标签的用户表
-图表	plt.show() 实时显示	所有分析图表
-💎 应用场景
-✅ 用户精细化分层（RFM + 生命周期）
+热力图和堆叠图的数据量较大时，建议只展示 TopN 类别，避免图表拥挤
 
-✅ 流失预警与召回策略（预流失/流失用户）
+📄 示例数据说明
+本分析使用的 user_personalized_features.csv 为模拟脱敏数据，包含用户年龄、性别、地区、登录天数、购买频次、消费金额等字段，仅用于演示分析流程。
 
-✅ 个性化推荐（兴趣渗透率矩阵）
+🤝 贡献
+欢迎提交 Issue 或 Pull Request 改进分层逻辑或可视化效果。
 
-✅ 营销活动定向（活跃度+消费能力）
+📧 联系方式
+如有疑问，请联系项目维护者。
