@@ -42,8 +42,8 @@ text   文本
 | 🌱 新用户-14天内 | Purchase_Frequency == 1 且 Last_Login_Days_Ago ≤ 14 |
 | 📈 成长期 | Last_Login_Days_Ago ≤ 14 且不满足新用户/成熟期 |
 | 🌳 成熟期 | Last_Login_Days_Ago ≤ 7 且 Purchase_Frequency ≥ 5 |
-| ⚠️ 预流失用户 | 15 ≤ Last_Login_Days_Ago ≤ 21 |
-| ❌ 流失用户 | Last_Login_Days_Ago ≥ 22 |
+| ⚠️ 预流失用户 | 15 ≤ Last_Login_Days_Ago ≤ 21 || ⚠️ 预流失用户 | 15 ≤ Last_Login_Days_Ago ≤ 21 |
+| ❌ 流失用户 | Last_Login_Days_Ago ≥ 22 || ❌ 流失用户 | Last_Login_Days_Ago ≥ 22 |
 | ❓ 未知 | 其他 |
 
 ### 3️⃣ RFM 分层（宏观 5 类）
